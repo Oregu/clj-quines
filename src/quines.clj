@@ -1,4 +1,5 @@
 (ns quines
+  (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
 (defn test1 []
@@ -13,4 +14,24 @@
 (defn test3 []
   (run* [r]
     (fresh [x y]
-      (== (lcons x (lcons y 'salad)) r)))
+      (== (lcons x (lcons y 'salad)) r))))
+
+;;
+;; Translation of canonical Prolog's list size goal
+;;
+(defnu sizeo [l n]
+  ([[] 0])
+  ([[_ . rest] _]
+  	(fresh [n1]
+      (sizeo rest n1)
+      (project [n n1]
+        (== n (+ n1 1))))))
+
+(defn test4 []
+  (run* [q]
+    (sizeo '(1 2 'q :r 4) q)))
+
+;;
+;; member(X,[X|_]).
+;; member(X,[_|T]) :- member(X,T).
+;;

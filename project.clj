@@ -1,4 +1,4 @@
-(defproject quine "0.0.1"
+(defproject quines "0.0.1"
   :description "Experiment with core.logic after watching miniKanren presentation by William and Dan."
   :url "http://github.com/Oregu/quine"
 
