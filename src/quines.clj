@@ -35,3 +35,15 @@
 ;; member(X,[X|_]).
 ;; member(X,[_|T]) :- member(X,T).
 ;;
+
+(defn sqrto [sq n] (== sq (* n n)))
+
+;; This will power up
+(defn test5 []
+  (run* (q) (sqrto q 9)))
+
+;; But this will throw ex
+;; No equation solving, sorry
+(defn test6 []
+  (run* (q) (sqrto 81 q)))
+
