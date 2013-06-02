@@ -1,4 +1,4 @@
-(ns quines
+(ns warmup
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
@@ -24,12 +24,12 @@
   ([[_ . rest] _]
   	(fresh [n1]
       (sizeo rest n1)
-      (project [n n1]
+      (project [n1]
         (== n (+ n1 1))))))
 
 (defn test4 []
   (run* [q]
-    (sizeo '(1 2 'q :r 4) q)))
+    (sizeo '(1 q q :r 4) q)))
 
 ;;
 ;; member(X,[X|_]).
@@ -47,3 +47,22 @@
 (defn test6 []
   (run* (q) (sqrto 81 q)))
 
+;;
+;; Fibonacci naive relation
+;;
+(defnu fib-naiveo [n fibn]
+  ([0 0])
+  ([1 1])
+  ([_ _]
+    (fresh [fn-1 fn-2]
+      (fib-naiveo (- n 1) fn-1)
+      (fib-naiveo (- n 2) fn-2)
+      (project [fn-1 fn-2]
+        (== fibn (+ fn-1 fn-2))))))
+
+(defn test7 []
+  (run* (q) (fib-naiveo 10 q)))
+
+;; And again this is not working. (Projecting didn't help.)
+(defn test8 []
+  (run* (q) (fib-naiveo q 21)))
