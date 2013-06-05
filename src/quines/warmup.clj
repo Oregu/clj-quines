@@ -1,4 +1,4 @@
-(ns warmup
+(ns quines.warmup
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
@@ -66,3 +66,7 @@
 ;; And again this is not working. (Projecting didn't help.)
 (defn test8 []
   (run* (q) (fib-naiveo q 21)))
+
+;; Not equal
+(defn test9 []
+  (run* (q) (!= 5 q)))
