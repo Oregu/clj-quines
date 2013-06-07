@@ -63,3 +63,6 @@
 
 (defn pluso [n m k]
   (addero 0 n m k))
+
+(defn minuso [n m k]
+  (pluso m k n))
