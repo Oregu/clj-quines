@@ -66,3 +66,79 @@
 
 (defn minuso [n m k]
   (pluso m k n))
+
+(declare odd-*o)
+
+(defn *o [n m p]
+  (conde
+    [(== '() n) (== '() p)]
+    [(poso n) (== '() m) (== '() p)]
+    [(== '(1) n) (poso m) (== m p)]
+    [(>1o n) (== '(1) m) (== n p)]
+    [(matche [n] ([[0 . ?x]] (poso ?x)
+      (matche [p] ([[0 . ?z]] (poso ?z)
+        (>1o m)
+        (*o ?x m ?z)))))]
+    [(matche [n] ([[1 . ?x]] (poso ?x)))
+      (matche [m] ([[0 . ?y]] (poso ?y)))
+      (*o m n p)]
+    [(matche [n] ([[1 . ?x]] (poso ?x)
+      (matche [m] ([[1 . ?y]] (poso ?y)
+        (odd-*o ?x n m p)))))]))
+
+(declare bound-*o)
+
+(defn odd-*o [x n m p]
+  (fresh [q]
+    (bound-*o q p n m)
+    (*o x m q)
+    (pluso `(0 . ,q) m p)))
+
+(defn bound-*o [q p n m]
+  (conde
+    [(== '() q) (poso p)]
+    [(fresh [a0 a1 a2 a3 x y z]
+      (matche [q] ([[,a0 . ,x]] succeed))
+      (matche [p] ([[,a1 . ,y]] succeed))
+      (conde
+        [(== '() n)
+         (matche [m] ([[,a2 . ,z]] succeed))
+         (bound-*o x y z '())]
+        [(matche [n] ([[,a3 . ,z]] succeed))
+         (bound-*o x y z m)]))]))
+
+(defn =lo [n m]
+  (conde
+    [(== '() n) (== '() m)]
+    [(== '(1) n) (== '(1) m)]
+    [(fresh (x y)
+      (matche [n] ([[_ . ,x]] (poso x)))
+      (matche [m] ([[_ . ,y]] (poso y)))
+      (=lo x y))]))
+
+(defn <lo [n m]
+  (conde
+    [(== '() n) (poso m)]
+    [(== '(1) n) (>1o m)]
+    [(fresh (x y)
+      (== `(_ . ,x) n) (poso x)
+      (== `(_ . ,y) m) (poso y)
+      (<lo x y))]))
+
+(defn <=lo [n m]
+  (conde
+    [(=lo n m)]
+    [(<lo n m)]))
+
+(defn <o [n m]
+  (conde
+    [(<lo n m)]
+    [(=lo n m)
+     (fresh (x)
+       (poso x)
+       (pluso n x m))]))
+
+(defn <=o [n m]
+  (conde
+    [(== n m)]
+    [(<o n m)]))
