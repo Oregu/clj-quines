@@ -30,9 +30,9 @@
             (eval-exp body (into [[x arg]] env2)))))))
 
 (defn test-1 []
-  (eval-exp '[[[fn x [fn y x]] [fn z z]] [fn a a]] []))
+  (eval-exp '(((fn x (fn y x)) (fn z z)) (fn a a)) '()))
 
 (defn test-2 []
   (eval-exp
-    '[[fn fn [fn fn] [fn fn]]
-      [fn fn [fn fn] [fn fn]]] []))
+    '[(fn fn [fn fn] [fn fn])
+      (fn fn [fn fn] [fn fn])] '()))
