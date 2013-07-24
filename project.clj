@@ -3,4 +3,5 @@
   :url "http://github.com/Oregu/quine"
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.logic "0.8.3"]])
+                 [org.clojure/core.logic "0.8.3"]
+                 [org.clojure/tools.trace "0.7.5"]])
