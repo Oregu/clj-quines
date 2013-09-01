@@ -30,13 +30,13 @@
             (eval-exp body (into [[x arg]] env2)))))))
 
 (def big-omega
-  '((fn fn [fn fn] [fn fn])
-    (fn fn [fn fn] [fn fn])))
+  '((fn fn (fn fn)
+    (fn fn (fn fn)))))
 
 ;; Evaluates to (fn z z)
 (defn test-1 []
-  (eval-exp '(((fn x (fn y x)) (fn z z)) (fn a a)) '()))
+  (eval-exp '(((fn x (fn y x)) (fn z z)) (fn a a)) []))
 
 ;; Will go to infinite loop, it's Big Omega time
 (defn test-2 []
-  (eval-exp big-omega '()))
+  (eval-exp big-omega []))
