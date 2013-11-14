@@ -9,4 +9,4 @@ Using [@webyrd quines repo](https://github.com/webyrd/quines/) as source.
 - interp.clj — Non-relational λ-calculus interpreter (from quines paper, TODO: write a name)
 - core.clj — Relational λ-calculus interpreter
 
-The final purpose is to learn how Will done that and to make similar interpreter for λ-calculus.
+The final purpose is to learn how Will did that and to make similar interpreter for λ-calculus.
