@@ -27,6 +27,26 @@
 ; (define-syntax lambdaf@ 
 ;   (syntax-rules () ((_ () e) (lambda () e))))
 
+;; TODO WORKING ON THIS ;;
+(defn make-flat-tag [tag pred]
+  (fn [u]
+    (lambdag@ (a : s c* t)
+      (let [u (if (var? u) (walk u s) u)]
+        (cond
+          ((not (var? u))
+           (cond
+             ((pred u) (unit a))
+             (else (mzero))))
+          ((ext-t u tag pred s t) =>
+           (lambda (t0)
+             (cond
+               ((not (eq? t0 t))
+                (let ((t^ (list (car t0))))
+                  (let ((c* (subsume t^ c*)))
+                    (unit (subsume-t s c* t0)))))
+               (else (unit a)))))
+          (else (mzero))))))))
+
 (defn deep-tag? [tag]
   (not (or (= tag 'sym) (= tag 'num))))
 
@@ -176,9 +196,12 @@
             :else (unit a))
       :else (mzero))))
 
+(def symbolo (make-flat-tag 'sym symbol?))
+
+(def numbero (make-flat-tag 'num number?))
+
 (declare not-in-envo)
 (declare proper-listo)
-(declare symbolo)
 (declare lookupo)
 
 (defn eval-expo [exp env val]
