@@ -27,26 +27,6 @@
 ; (define-syntax lambdaf@ 
 ;   (syntax-rules () ((_ () e) (lambda () e))))
 
-;; TODO WORKING ON THIS ;;
-(defn make-flat-tag [tag pred]
-  (fn [u]
-    (lambdag@ (a : s c* t)
-      (let [u (if (var? u) (walk u s) u)]
-        (cond
-          ((not (var? u))
-           (cond
-             ((pred u) (unit a))
-             (else (mzero))))
-          ((ext-t u tag pred s t) =>
-           (lambda (t0)
-             (cond
-               ((not (eq? t0 t))
-                (let ((t^ (list (car t0))))
-                  (let ((c* (subsume t^ c*)))
-                    (unit (subsume-t s c* t0)))))
-               (else (unit a)))))
-          (else (mzero))))))))
-
 (defn deep-tag? [tag]
   (not (or (= tag 'sym) (= tag 'num))))
 
@@ -75,11 +55,6 @@
         (works-together? (pr-t->tag (first t)) tag)
           (recur (second t))
         :else false))))
-
-(defmacro append-extracted [form]
-  (fn [a]
-    (let [s (get a 0) c* (get a 1) t (get a 2)]
-      `(form a s c* t))))
 
 (defn rem-dups [vars]
   (cond
@@ -165,6 +140,30 @@
 
 (defn subsume [t c*]
   (filter #(not (some (subsumed-pr? t) %)) c*))
+
+(defmacro append-extracted [form]
+  (fn [a]
+    (let [s (get a 0) c* (get a 1) t (get a 2)]
+      `(form a s c* t))))
+
+(defn make-flat-tag [tag pred]
+  (fn [u]
+    (append-extracted
+      (let [u (if (var? u) (walk u s) u)]
+        (cond
+          (not (var? u))
+            (cond
+              (pred u) (unit a)
+              :else (mzero))
+          (ext-t u tag pred s t)
+            (let [t0 (ext-t u tag pred s t)])
+              (cond
+                (not= t0 t)
+                  (let [t-up (list (first t0))
+                        c* (subsume t-up c*)]
+                    (unit (subsume-t s c* t0)))
+                :else (unit a))
+          :else (mzero))))))
 
 (defn noo [tag u]
   (let [pred #(not= % tag)]
