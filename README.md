@@ -10,4 +10,5 @@ Using [@webyrd quines repo](https://github.com/webyrd/quines/) as source.
 - core.clj — Relational λ-calculus interpreter ([mk.scm](https://github.com/webyrd/quines/blob/master/mk.scm) and [q.scm](https://github.com/webyrd/quines/blob/master/q.scm))
 
 [core.logic repo](https://github.com/clojure/core.logic) ([core.logic source](https://github.com/clojure/core.logic/blob/master/src/main/clojure/clojure/core/logic.clj)).
+
 [frenchy64 logic tutorial](https://github.com/frenchy64/Logic-Starter/wiki).
