@@ -1,5 +1,5 @@
 (ns quines.core
-  (:refer-clojure :exclude [==])
+  (:refer-clojure :exclude [== var?])
   (:use [clojure.core.logic]))
 
 ; (define a->s (lambda (a) (car a)))
@@ -16,12 +16,11 @@
 
 
 ; (define var (lambda (dummy) (vector dummy)))
-; (define var? (lambda (x) (vector? x)))
+(defn var? [x] (vector? x))
 ; (define lhs (lambda (pr) (car pr)))
 ; (define rhs (lambda (pr) (cdr pr)))
 
-
-(defn mzero [] false)
+(defn mzero [] nil)
 (defn unit [a] a)
 ; (define choice (lambda (a f) (cons a f)))
 ; (define-syntax lambdaf@ 
@@ -40,9 +39,9 @@
   (first (second pr-t)))
 
 (defn walk [x s]
-  (let [a (get x s)]
+  (let [a (find x s)]
     (cond
-      a (if (var? a) (walk a s) a)
+      a (let [u (second a)] (if (var? u) (walk u s) u))
       :else x)))
 
 (defn ext-t [x tag pred s t-up]
@@ -130,7 +129,7 @@
     (let [u (second pr-c)]
       (and (not (var? u))
         (let [x (first pr-c)]
-          (let [pr-t (get x t)]
+          (let [pr-t (find x t)]
             (and pr-t
               (let [tag (pr-t->tag pr-t)]
                 (cond
@@ -159,6 +158,8 @@
                     (unit (subsume-t s c* t0)))
                 :else (unit a)))
           :else (mzero)))))))
+
+(declare noo-aux)
 
 (defn noo [tag u]
   (let [pred #(not= % tag)]
@@ -205,7 +206,7 @@
       [(== y x) (== v t)]
       [(!= y x) (lookupo x rest t)])))
 
-(defn ^:dynamic eval-expo [exp env val]
+(defn eval-expo [exp env val]
   (conde
     [(fresh [v]
       (== `(quote ,v) exp)
@@ -238,7 +239,7 @@
        (not-in-envo x rest))]
     [(== '() env)]))
 
-(defn ^:dynamic proper-listo [exp env val]
+(defn proper-listo [exp env val]
   (conde
     [(== '() exp)
      (== '() val)]
@@ -249,6 +250,6 @@
        (proper-listo d env t-d))]))
 
 ;; Evaluates to (fn z z)
-(defn ^:dynamic test-1 []
+(defn test-1 []
   (run 1 [q]
     (eval-expo '(((fn x (fn y x)) (fn z z)) (fn a a)) '() q)))
