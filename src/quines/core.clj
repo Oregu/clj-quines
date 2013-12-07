@@ -48,7 +48,7 @@
   (let [x (walk x s)]
     (loop [t t-up]
       (cond
-        (nil? t) (list `(,x . (,tag . ,pred)) t-up)
+        (nil? t) (list `(~x . (~tag . ~pred)) t-up)
         (not= (walk (first (first t)) s) x) (recur (second t))
         (= (pr-t->tag  (first t)) tag) t-up
         (works-together? (pr-t->tag (first t)) tag)
@@ -79,11 +79,11 @@
           (= (second (first c)) tag)))
       c*)
       c*
-    :else (list `((,x . ,tag)) c*)))
+    :else (list `((~x . ~tag)) c*)))
 
 (defn subsumed-from-t-to-c* [x s c* t t-up]
   (cond
-    (nil? t) `(,c* . ,t-up)
+    (nil? t) `(~c* . ~t-up)
     :else
       (let [pr-t (first t)]
         (let [tag (pr-t->tag pr-t)
@@ -113,13 +113,13 @@
     (some (have-flat-tag? #(= % 'sym) x) t)
       (subsumed-from-t-to-c* x s c* t '())
     (some (have-flat-tag? #(not= % 'sym) x) t)
-      `(,c* . ,(drop-from-t x t))
-    :else `(,c* . ,t)))
+      `(~c* . ~(drop-from-t x t))
+    :else `(~c* . ~t)))
 
 (defn subsume-t [s c* t]
   (loop [x* (rem-dups (map first t)) c* c* t t]
     (cond
-      (nil? x*) `(,s ,c* ,t)
+      (nil? x*) `(~s ~c* ~t)
       :else
         (let [c*-div-t (subsume-c*-div-t (first x*) s c* t)]
           (recur (second x*) (first c*-div-t) (second c*-div-t))))))
@@ -199,7 +199,7 @@
 (declare not-in-envo)
 (declare proper-listo)
 
-(defn ^:dynamic lookupo [x env t]
+(defn lookupo [x env t]
   (fresh [rest y v]
     (== `((y . v) . rest) env)
     (conde
@@ -209,32 +209,32 @@
 (defn eval-expo [exp env val]
   (conde
     [(fresh [v]
-      (== `(quote ,v) exp)
+      (== `(quote ~v) exp)
       (not-in-envo 'quote env)
       (noo 'closure v)
       (== v val))]
     [(fresh [a*]
-      (== `(list . ,a*) exp)
+      (== `(list . ~a*) exp)
       (not-in-envo 'list env)
       (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
       (lookupo exp env val)]
     [(fresh [rator rand x body env* a]
-      (== `(,rator ,rand) exp)
-      (eval-expo rator env `(closure ,x ,body ,env*))
+      (== `(~rator ~rand) exp)
+      (eval-expo rator env `(closure ~x ~body ~env*))
       (eval-expo rand env a)
-      (eval-expo body `((,x . ,a) . ,env*) val))]
+      (eval-expo body `((~x . ~a) . ~env*) val))]
     [(fresh [x body]
-      (== `(lambda (,x) ,body) exp)
+      (== `(lambda (~x) ~body) exp)
       (symbolo x)
       (not-in-envo 'lambda env)
-      (== `(closure ,x ,body ,env) val))]))
+      (== `(closure ~x ~body ~env) val))]))
 
 (defn not-in-envo [x env]
   (conde
     [(fresh (y v rest)
-       (== `((,y . ,v) . ,rest) env)
+       (== `((~y . ~v) . ~rest) env)
        (!= y x)
        (not-in-envo x rest))]
     [(== '() env)]))
@@ -244,12 +244,17 @@
     [(== '() exp)
      (== '() val)]
     [(fresh [a d t-a t-d]
-       (== `(,a . ,d) exp)
-       (== `(,t-a . ,t-d) val)
+       (== `(~a . ~d) exp)
+       (== `(~t-a . ~t-d) val)
        (eval-expo a env t-a)
        (proper-listo d env t-d))]))
 
 ;; Evaluates to (fn z z)
 (defn test-1 []
+  (run 1 [q]
+    (eval-expo `(quote ~q) '() q)
+    (== q 42)))
+
+(defn test-2 []
   (run 1 [q]
     (eval-expo '(((fn x (fn y x)) (fn z z)) (fn a a)) '() q)))
