@@ -140,27 +140,9 @@
 (defn subsume [t c*]
   (filter #(not (some (subsumed-pr? t) %)) c*))
 
-(defn ^:dynamic make-flat-tag [tag pred]
-  (fn [u]
-    (fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
-      (let [u (if (var? u) (walk u s) u)]
-        (cond
-          (not (var? u))
-            (cond
-              (pred u) (unit a)
-              :else (mzero))
-          (ext-t u tag pred s t)
-            (let [t0 (ext-t u tag pred s t)]
-              (cond
-                (not= t0 t)
-                  (let [t-up (list (first t0))
-                        c* (subsume t-up c*)]
-                    (unit (subsume-t s c* t0)))
-                :else (unit a)))
-          :else (mzero)))))))
-
 (declare noo-aux)
 
+;; WRONG. NEXT IN THE LINE.
 (defn noo [tag u]
   (let [pred #(not= % tag)]
     (fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
@@ -192,66 +174,72 @@
             :else (unit a))
       :else (mzero))))
 
-(def ^:dynamic symbolo (make-flat-tag 'sym symbol?))
-
-(def numbero (make-flat-tag 'num number?))
+(defn symbolo [x] (pred x symbol?))
+(defn numbero [x] (pred x number?))
 
 (declare not-in-envo)
 (declare proper-listo)
 
-(defn ^:dynamic lookupo [x env t]
+(defn lookupo [x env t]
   (fresh [rest y v]
-    (== `((y . v) . rest) env)
+    (conso `(~y ~v) rest env)
+    #_(trace-lvars "in lookupo" [x y v env])
     (conde
       [(== y x) (== v t)]
       [(!= y x) (lookupo x rest t)])))
 
-(defn ^:dynamic eval-expo [exp env val]
+(defn eval-expo [exp env val]
   (conde
     [(fresh [v]
-      (trace-lvars "expo1" [exp env val])
+      #_(trace-lvars "expo1" [exp env val])
       (== `(quote ~v) exp)
-      (trace-lvars "1" [v exp])
+      #_(trace-lvars "1" [v exp])
       (not-in-envo 'quote env)
       (noo 'closure v)
       (== v val))]
     [(fresh [a*]
-      (trace-lvars "expo2" [exp env val])
+      #_(trace-lvars "expo2" [exp env val])
       (== `(list . ~a*) exp)
-      (trace-lvars "2" [a* exp])
+      #_(trace-lvars "2" [a* exp])
       (not-in-envo 'list env)
       (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
-      (trace-lvars "expo3" [exp env val])
-      (lookupo exp env val)]
+      #_(trace-lvars "expo3" [exp env val])
+      (lookupo exp env val)
+      #_(trace-lvars "after lookupo" [exp env val])]
     [(fresh [rator rand x body env* a env2]
+      #_(trace-lvars "expo4" [exp env val])
       (== `(~rator ~rand) exp)
-      (trace-lvars "3" [rator rand])
+      #_(trace-lvars "3" [rator rand])
       (eval-expo rator env `(closure ~x ~body ~env*))
-      (trace-lvars "4" [rator x env* body])
+      #_(trace-lvars "4" [rator x env* body])
+      #_(trace-lvars "4,5" [rand env a])
       (eval-expo rand env a)
-      (trace-lvars "5" [rand env a])
-      (== env2 (lcons `(~x ~a) env*))
-      (trace-lvars "6" [x a env2 env*])
+      #_(trace-lvars "5" [rand env a])
+      (== (lcons `(~x ~a) env*) env2)
+      #_(trace-lvars "6" [x a env2 env*])
       (eval-expo body env2 val))]
     [(fresh [x body]
-      (trace-lvars "expo5" [exp env val])
-      (== `(fn ~x ~body) exp)
-      (trace-lvars "7" [x body])
+      #_(trace-lvars "expo5" [exp env val])
+      (== `(fn [~x] ~body) exp)
+      #_(trace-lvars "7" [x body val env])
       (symbolo x)
+      #_(trace-lvars "8" [x env])
       (not-in-envo 'fn env)
-      (== `(closure ~x ~body ~env) val))]))
+      #_(trace-lvars "9" [env])
+      (== `(closure ~x ~body ~env) val)
+      #_(trace-lvars "10" [x body env]))]))
 
-(defn ^:dynamic not-in-envo [x env]
+(defn not-in-envo [x env]
   (conde
     [(fresh (y v rest)
-       (== `((~y . ~v) . ~rest) env)
+       (conso `(~y ~v) rest env)
        (!= y x)
        (not-in-envo x rest))]
     [(== '() env)]))
 
-(defn ^:dynamic proper-listo [exp env val]
+(defn proper-listo [exp env val]
   (conde
     [(== '() exp)
      (== '() val)]
@@ -266,11 +254,16 @@
     (eval-expo `(quote ~q) '() q)
     (== q 42)))
 
-;; Evaluates to (fn z z)
-; (defn test-2 []
-;   (run 1 [q]
-;     (eval-expo '(((fn (x) (fn (y) x)) (fn (z) z)) (fn (a) a)) '() q)))
-
-(defn ^:dynamic test-2 []
+;; Evaluates to 5
+(defn test-2 []
   (run 1 [q]
-    (eval-expo `((fn x x) 5) '() q)))
+    (eval-expo `((fn [x] x) z) `((z 5)) q)))
+
+;; Evaluates to (fn z z)
+(defn test-3 []
+  (run 1 [q]
+    (eval-expo '(((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) '() q)))
+
+(defn test-quines []
+  (run 1 [q]
+    (eval-expo q '() q)))
