@@ -183,7 +183,6 @@
 (defn lookupo [x env t]
   (fresh [rest y v]
     (conso `(~y ~v) rest env)
-    #_(trace-lvars "in lookupo" [x y v env])
     (conde
       [(== y x) (== v t)]
       [(!= y x) (lookupo x rest t)])))
@@ -199,26 +198,18 @@
       (== v val))]
     [(fresh [a*]
       #_(trace-lvars "expo2" [exp env val])
-      (== `(list . ~a*) exp)
+      (conso 'list a* exp)
       #_(trace-lvars "2" [a* exp])
       (not-in-envo 'list env)
       (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
-      #_(trace-lvars "expo3" [exp env val])
-      (lookupo exp env val)
-      #_(trace-lvars "after lookupo" [exp env val])]
+      (lookupo exp env val)]
     [(fresh [rator rand x body env* a env2]
-      #_(trace-lvars "expo4" [exp env val])
       (== `(~rator ~rand) exp)
-      #_(trace-lvars "3" [rator rand])
       (eval-expo rator env `(closure ~x ~body ~env*))
-      #_(trace-lvars "4" [rator x env* body])
-      #_(trace-lvars "4,5" [rand env a])
       (eval-expo rand env a)
-      #_(trace-lvars "5" [rand env a])
       (== (lcons `(~x ~a) env*) env2)
-      #_(trace-lvars "6" [x a env2 env*])
       (eval-expo body env2 val))]
     [(fresh [x body]
       #_(trace-lvars "expo5" [exp env val])
@@ -227,9 +218,7 @@
       (symbolo x)
       #_(trace-lvars "8" [x env])
       (not-in-envo 'fn env)
-      #_(trace-lvars "9" [env])
-      (== `(closure ~x ~body ~env) val)
-      #_(trace-lvars "10" [x body env]))]))
+      (== `(closure ~x ~body ~env) val))]))
 
 (defn not-in-envo [x env]
   (conde
@@ -249,21 +238,32 @@
        (eval-expo a env t-a)
        (proper-listo d env t-d))]))
 
-(defn test-1 []
+(defn test-eval-1 []
   (run 1 [q]
     (eval-expo `(quote ~q) '() q)
     (== q 42)))
 
 ;; Evaluates to 5
-(defn test-2 []
+(defn test-eval-2 []
   (run 1 [q]
     (eval-expo `((fn [x] x) z) `((z 5)) q)))
 
 ;; Evaluates to (fn z z)
-(defn test-3 []
-  (run 1 [q]
-    (eval-expo '(((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) '() q)))
+(defn test-eval-3 []
+  (run 1 [q] (eval-expo `(((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) `() q)))
 
-(defn test-quines []
+;; Evaluates to 7
+(defn test-eval-4 []
+  (run 1 [q] (eval-expo `((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) `((m 7)) q)))
+
+;; Evaluates to 'm
+(defn test-eval-5 []
+  (run 1 [q] (eval-expo `((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) `((~q 7)) 7)))
+
+;; Evaluates to '((m 7))
+(defn test-eval-6 []
+  (run 3 [q] (eval-expo `((fn [a] a) m) q 7)))
+
+(defn test-quines-1 []
   (run 1 [q]
     (eval-expo q '() q)))
