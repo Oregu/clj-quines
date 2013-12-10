@@ -192,16 +192,14 @@
     [(fresh [v]
       #_(trace-lvars "expo1" [exp env val])
       (== `(quote ~v) exp)
-      #_(trace-lvars "1" [v exp])
-      (not-in-envo 'quote env)
-      (noo 'closure v)
+      (not-in-envo `quote env)
+      (noo `closure v)
       (== v val))]
     [(fresh [a*]
       #_(trace-lvars "expo2" [exp env val])
-      (conso 'list a* exp)
-      #_(trace-lvars "2" [a* exp])
-      (not-in-envo 'list env)
-      (noo 'closure a*)
+      (conso `list a* exp)
+      (not-in-envo `list env)
+      (noo `closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
       (lookupo exp env val)]
@@ -212,12 +210,9 @@
       (== (lcons `(~x ~a) env*) env2)
       (eval-expo body env2 val))]
     [(fresh [x body]
-      #_(trace-lvars "expo5" [exp env val])
       (== `(fn [~x] ~body) exp)
-      #_(trace-lvars "7" [x body val env])
       (symbolo x)
-      #_(trace-lvars "8" [x env])
-      (not-in-envo 'fn env)
+      (not-in-envo `fn env)
       (== `(closure ~x ~body ~env) val))]))
 
 (defn not-in-envo [x env]
@@ -233,8 +228,8 @@
     [(== '() exp)
      (== '() val)]
     [(fresh [a d t-a t-d]
-       (== `(~a . ~d) exp)
-       (== `(~t-a . ~t-d) val)
+       (conso a d exp)
+       (conso t-a t-d val)
        (eval-expo a env t-a)
        (proper-listo d env t-d))]))
 
@@ -264,6 +259,20 @@
 (defn test-eval-6 []
   (run 3 [q] (eval-expo `((fn [a] a) m) q 7)))
 
+;; DO NOT PASS
 (defn test-quines-1 []
   (run 1 [q]
     (eval-expo q '() q)))
+
+(def quine `((fn [x] (list x (list 'quote x)))
+              '(fn [x] (list x (list 'quote x)))))
+
+;; DO NOT PASS
+(defn test-quines-2 []
+  (run 1 [q]
+    (eval-expo quine '() q)))
+
+;; DO NOT PASS
+(defn test-quines-3 []
+  (run 1 [q]
+    (eval-expo q '() quine)))
