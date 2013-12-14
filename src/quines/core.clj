@@ -1,5 +1,5 @@
 (ns quines.core
-  (:refer-clojure :exclude [== var?])
+  (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
 ; (define a->s (lambda (a) (car a)))
@@ -16,7 +16,7 @@
 
 
 ; (define var (lambda (dummy) (vector dummy)))
-(defn var? [x] (vector? x))
+; (defn var? [x] (vector? x))
 ; (define lhs (lambda (pr) (car pr)))
 ; (define rhs (lambda (pr) (cdr pr)))
 
@@ -140,39 +140,42 @@
 (defn subsume [t c*]
   (filter #(not (some (subsumed-pr? t) %)) c*))
 
-(declare noo-aux)
+; (declare noo-aux)
 
 ;; WRONG. NEXT IN THE LINE.
-(defn noo [tag u]
-  (let [pred #(not= % tag)]
-    (fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
-      (noo-aux tag u pred a s c* t)))))
+; (defn noo [tag u]
+;   (let [pred #(not= % tag)]
+;     (fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
+;       (noo-aux tag u pred a s c* t)))))
 
-(defn noo-aux [tag u pred a s c* t]
-  (let [u (if (var? u) (walk u s) u)]
-    (cond
-      (and (list? u) (= (count u) 2))
-        (cond
-          (pred u)
-            (let [a (noo-aux tag (first u) pred a s c* t)]
-              (and a
-                (((fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
-                    (noo-aux tag (second u) pred a s c* t)))
-                  a))))
-         :else (mzero))
-      (not (var? u))
-        (cond
-          (pred u) (unit a)
-          :else (mzero))
-      (ext-t u tag pred s t)
-        (let [t0 (ext-t u tag pred s t)]
-          (cond
-            (not= t0 t)
-              (let [t-up (list (first t0))]
-                (let [c* (subsume t-up c*)]
-                  (unit (subsume-t s c* t0)))))
-            :else (unit a))
-      :else (mzero))))
+; (defn noo-aux [tag u pred a s c* t]
+;   (let [u (if (var? u) (walk u s) u)]
+;     (cond
+;       (and (list? u) (= (count u) 2))
+;         (cond
+;           (pred u)
+;             (let [a (noo-aux tag (first u) pred a s c* t)]
+;               (and a
+;                 (((fn [a] (let [s (get a 0) c* (get a 1) t (get a 2)] ; TODO This should be macro lambdag@
+;                     (noo-aux tag (second u) pred a s c* t)))
+;                   a))))
+;          :else (mzero))
+;       (not (var? u))
+;         (cond
+;           (pred u) (unit a)
+;           :else (mzero))
+;       (ext-t u tag pred s t)
+;         (let [t0 (ext-t u tag pred s t)]
+;           (cond
+;             (not= t0 t)
+;               (let [t-up (list (first t0))]
+;                 (let [c* (subsume t-up c*)]
+;                   (unit (subsume-t s c* t0)))))
+;             :else (unit a))
+;       :else (mzero))))
+
+(defn noo [tag u]
+  (pred u #(clojure.core/not= % tag)))
 
 (defn symbolo [x] (pred x symbol?))
 (defn numbero [x] (pred x number?))
@@ -191,29 +194,29 @@
   (conde
     [(fresh [v]
       #_(trace-lvars "expo1" [exp env val])
-      (== `(quote ~v) exp)
-      (not-in-envo `quote env)
-      (noo `closure v)
+      (== `(~'quote ~v) exp)
+      (not-in-envo 'quote env)
+      (noo 'closure v)
       (== v val))]
     [(fresh [a*]
       #_(trace-lvars "expo2" [exp env val])
-      (conso `list a* exp)
-      (not-in-envo `list env)
-      (noo `closure a*)
+      (conso 'list a* exp)
+      (not-in-envo 'list env)
+      (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
       (lookupo exp env val)]
     [(fresh [rator rand x body env* a env2]
       (== `(~rator ~rand) exp)
-      (eval-expo rator env `(closure ~x ~body ~env*))
+      (eval-expo rator env `(~'closure ~x ~body ~env*))
       (eval-expo rand env a)
       (== (lcons `(~x ~a) env*) env2)
       (eval-expo body env2 val))]
     [(fresh [x body]
-      (== `(fn [~x] ~body) exp)
+      (== `(~'fn [~x] ~body) exp)
       (symbolo x)
-      (not-in-envo `fn env)
-      (== `(closure ~x ~body ~env) val))]))
+      (not-in-envo 'fn env)
+      (== `(~'closure ~x ~body ~env) val))]))
 
 (defn not-in-envo [x env]
   (conde
@@ -235,36 +238,36 @@
 
 (defn test-eval-1 []
   (run 1 [q]
-    (eval-expo `(quote ~q) '() q)
+    (eval-expo `(~'quote ~q) '() q)
     (== q 42)))
 
 ;; Evaluates to 5
 (defn test-eval-2 []
   (run 1 [q]
-    (eval-expo `((fn [x] x) z) `((z 5)) q)))
+    (eval-expo '((fn [x] x) z) '((z 5)) q)))
 
 ;; Evaluates to (fn z z)
 (defn test-eval-3 []
-  (run 1 [q] (eval-expo `(((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) `() q)))
+  (run 1 [q] (eval-expo '(((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) '() q)))
 
 ;; Evaluates to 7
 (defn test-eval-4 []
-  (run 1 [q] (eval-expo `((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) `((m 7)) q)))
+  (run 1 [q] (eval-expo '((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) '((m 7)) q)))
 
 ;; Evaluates to 'm
 (defn test-eval-5 []
-  (run 1 [q] (eval-expo `((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) `((~q 7)) 7)))
+  (run 1 [q] (eval-expo '((((fn [x] (fn [y] x)) (fn [z] z)) (fn [a] a)) m) `((~q 7)) 7)))
 
 ;; Evaluates to '((m 7))
 (defn test-eval-6 []
-  (run 3 [q] (eval-expo `((fn [a] a) m) q 7)))
+  (run 3 [q] (eval-expo '((fn [a] a) m) q 7)))
 
 ;; DO NOT PASS
 (defn test-quines-1 []
   (run 1 [q]
-    (eval-expo q '() q)))
+    (eval-expo `~q '() q)))
 
-(def quine `((fn [x] (list x (list 'quote x)))
+(def quine '((fn [x] (list x (list 'quote x)))
               '(fn [x] (list x (list 'quote x)))))
 
 ;; DO NOT PASS
