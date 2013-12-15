@@ -2,17 +2,18 @@
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
-(defn noo [tag u]
-  (pred u #(clojure.core/not= % tag)))
-
-(defn symbolo [x] (pred x symbol?))
-(defn numbero [x] (pred x number?))
+;; This three guys should be revised, they test for predicate,
+;; but should add constraints to u or x
+(defn noo [tag u] (predc u #(clojure.core/not= % tag)))
+(defn symbolo [x] (predc x symbol?))
+(defn numbero [x] (predc x number?))
 
 (declare not-in-envo)
 (declare proper-listo)
 
 (defn lookupo [x env t]
   (fresh [rest y v]
+    #_(trace-lvars "lookupo" [x env t])
     (conso `(~y ~v) rest env)
     (conde
       [(== y x) (== v t)]
@@ -23,8 +24,11 @@
     [(fresh [v]
       #_(trace-lvars "expo1" [exp env val])
       (== `(~'quote ~v) exp)
+      #_(trace-lvars "1" [v exp env])
       (not-in-envo 'quote env)
+      #_(trace-lvars "2" [exp])
       (noo 'closure v)
+      #_(trace-lvars "3" [v val])
       (== v val))]
     [(fresh [a*]
       #_(trace-lvars "expo2" [exp env val])
@@ -32,15 +36,19 @@
       (not-in-envo 'list env)
       (noo 'closure a*)
       (proper-listo a* env val))]
-    [(symbolo exp)
+    [
+      #_(trace-lvars "expo3" [exp env val])
+      (symbolo exp)
       (lookupo exp env val)]
-    [(fresh [rator rand x body env* a env2]
+    [(fresh [rator rand x body env- a env2]
+      #_(trace-lvars "expo4" [exp env val])
       (== `(~rator ~rand) exp)
-      (eval-expo rator env `(~'closure ~x ~body ~env*))
+      (eval-expo rator env `(~'closure ~x ~body ~env-))
       (eval-expo rand env a)
-      (== (lcons `(~x ~a) env*) env2)
+      (conso `(~x ~a) env- env2)
       (eval-expo body env2 val))]
     [(fresh [x body]
+      #_(trace-lvars "expo5" [exp env val])
       (== `(~'fn [~x] ~body) exp)
       (symbolo x)
       (not-in-envo 'fn env)
@@ -48,10 +56,10 @@
 
 (defn not-in-envo [x env]
   (conde
-    [(fresh (y v rest)
-       (conso `(~y ~v) rest env)
-       (!= y x)
-       (not-in-envo x rest))]
+    [(fresh [y v rest]
+      (conso `(~y ~v) rest env)
+      (!= y x)
+      (not-in-envo x rest))]
     [(== '() env)]))
 
 (defn proper-listo [exp env val]
@@ -91,13 +99,13 @@
 (defn test-eval-6 []
   (run 3 [q] (eval-expo '((fn [a] a) m) q 7)))
 
-;; DO NOT PASS
+(def quine '((fn [x] (list x (list 'quote x)))
+            '(fn [x] (list x (list 'quote x)))))
+
+;; Y U DON WANNA PASS :-(
 (defn test-quines-1 []
   (run 1 [q]
-    (eval-expo `~q '() q)))
-
-(def quine '((fn [x] (list x (list 'quote x)))
-              '(fn [x] (list x (list 'quote x)))))
+    (eval-expo q '() q)))
 
 (defn test-quines-2 []
   (run 1 [q]
@@ -106,3 +114,9 @@
 (defn test-quines-3 []
   (run 1 [q]
     (eval-expo q '() quine)))
+
+; This do not pass too!
+(defn test-quines-4 []
+  (run 1 [q]
+    (eval-expo q '() quine)
+    (eval-expo quine '() q)))
