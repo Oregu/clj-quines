@@ -113,3 +113,21 @@
 (defn test-quines-3 []
   (run 1 [q]
     (eval-expo q '() quine)))
+
+;; This returns answer with 'closure (1st answer), but should start with the second, just fns!
+;; Somenthing is still wrong. noo should work another way.
+(defn test-twines-1 []
+  (run 2 [r] (fresh [p q]
+    (eval-expo p '() q) (eval-expo q '() p) (!= p q)
+    (== r [p q]))))
+
+(defn test-thrines-1 []
+  (run 1 [x]
+    (fresh (p q r)
+      (!= p q)
+      (!= q r)
+      (!= r p)
+      (eval-expo p '() q)
+      (eval-expo q '() r)
+      (eval-expo r '() p)
+      (== [p q r] x))))
