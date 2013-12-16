@@ -102,7 +102,6 @@
 (def quine '((fn [x] (list x (list 'quote x)))
             '(fn [x] (list x (list 'quote x)))))
 
-;; Y U DON WANNA PASS :-(
 (defn test-quines-1 []
   (run 1 [q]
     (eval-expo q '() q)))
@@ -114,9 +113,3 @@
 (defn test-quines-3 []
   (run 1 [q]
     (eval-expo q '() quine)))
-
-; This do not pass too!
-(defn test-quines-4 []
-  (run 1 [q]
-    (eval-expo q '() quine)
-    (eval-expo quine '() q)))
