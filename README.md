@@ -13,3 +13,6 @@ Introduction is in the [video](http://2013.flatmap.no/danwill.html).
 [core.logic repo](https://github.com/clojure/core.logic) ([logic source file](https://github.com/clojure/core.logic/blob/master/src/main/clojure/clojure/core/logic.clj)),
 [@frenchy64 logic tutorial](https://github.com/frenchy64/Logic-Starter/wiki),
 [a core.logic primer](https://github.com/clojure/core.logic/wiki/A-Core.logic-Primer).
+
+
+Quine generator is fully functional now. See test examples. Had problems with noo goal and still not sure if it's correct, but it generates quines, twines and thrines.
