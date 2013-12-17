@@ -11,7 +11,6 @@
 
 (defn lookupo [x env t]
   (fresh [rest y v]
-    #_(trace-lvars "lookupo" [x env t])
     (conso `(~y ~v) rest env)
     (conde
       [(== y x) (== v t)]
@@ -20,33 +19,24 @@
 (defn eval-expo [exp env val]
   (conde
     [(fresh [v]
-      #_(trace-lvars "expo1" [exp env val])
       (== `(~'quote ~v) exp)
-      #_(trace-lvars "1" [v exp env])
       (not-in-envo 'quote env)
-      #_(trace-lvars "2" [exp])
       (noo 'closure v)
-      #_(trace-lvars "3" [v val])
       (== v val))]
     [(fresh [a*]
-      #_(trace-lvars "expo2" [exp env val])
       (conso 'list a* exp)
       (not-in-envo 'list env)
       (noo 'closure a*)
       (proper-listo a* env val))]
-    [
-      #_(trace-lvars "expo3" [exp env val])
-      (symbolo exp)
+    [(symbolo exp)
       (lookupo exp env val)]
     [(fresh [rator rand x body env- a env2]
-      #_(trace-lvars "expo4" [exp env val])
       (== `(~rator ~rand) exp)
       (eval-expo rator env `(~'closure ~x ~body ~env-))
       (eval-expo rand env a)
       (conso `(~x ~a) env- env2)
       (eval-expo body env2 val))]
     [(fresh [x body]
-      #_(trace-lvars "expo5" [exp env val])
       (== `(~'fn [~x] ~body) exp)
       (symbolo x)
       (not-in-envo 'fn env)
