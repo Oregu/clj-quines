@@ -2,9 +2,7 @@
   (:refer-clojure :exclude [==])
   (:use [clojure.core.logic]))
 
-;; This three guys should be revised, they test for predicate,
-;; but should add constraints to u or x
-(defn noo [tag u] (predc u #(clojure.core/not= % tag)))
+(defn noo [tag u] (predc u (fn [x] (clojure.core/not= (if (seq? x) (first x) x) tag))))
 (defn symbolo [x] (predc x symbol?))
 (defn numbero [x] (predc x number?))
 
@@ -114,10 +112,8 @@
   (run 1 [q]
     (eval-expo q '() quine)))
 
-;; This returns answer with 'closure (1st answer), but should start with the second, just fns!
-;; Somenthing is still wrong. noo should work another way.
 (defn test-twines-1 []
-  (run 2 [r] (fresh [p q]
+  (run 1 [r] (fresh [p q]
     (eval-expo p '() q) (eval-expo q '() p) (!= p q)
     (== r [p q]))))
 
