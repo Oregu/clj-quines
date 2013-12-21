@@ -1,7 +1,7 @@
 (ns quines.test.core
   (:refer-clojure :exclude [==])
   (:use quines.core
-  	    [clojure.core.logic :exclude [is] :as l]
+        [clojure.core.logic :exclude [is] :as l]
         clojure.test))
 
 (deftest eval-quote
@@ -43,12 +43,22 @@
       (first (run 1 [q]
         (eval-expo q '() quine)))))))
 
+; TODO test several quines
+
 (deftest test-quine-gen
   (let [quine-gen (first (first (run 1 [q] ; second first is to get func itself, others are constraints
                     (eval-expo q '() q))))]
 
-    (is (= quine-gen (eval quine-gen)))
     (is (= quine-gen (first (run 1 [q] (eval-expo quine-gen '() q)))))))
+
+(deftest test-quines-eval
+  (let [quines (run 3 [q] (eval-expo q '() q))
+        q1 (first (first quines))
+        q2 (first (second quines))
+        q3 (first (nth quines 2))]
+    (is (= q1 (eval q1)))
+    (is (= q2 (eval q2)))
+    (is (= q3 (eval q3)))))
 
 (deftest test-twines
   (let [twines (first (first
