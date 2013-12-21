@@ -43,27 +43,35 @@
       (first (run 1 [q]
         (eval-expo q '() quine)))))))
 
-(comment
-
 (deftest test-quine-gen
-  (let [quine-gen (first (run 1 [q]
-                    (eval-expo q '() q)))]
+  (let [quine-gen (first (first (run 1 [q] ; second first is to get func itself, others are constraints
+                    (eval-expo q '() q))))]
 
+    (is (= quine-gen (eval quine-gen)))
     (is (= quine-gen (first (run 1 [q] (eval-expo quine-gen '() q)))))))
 
-(defn test-twines-1 []
-  (run 1 [r] (fresh [p q]
-    (eval-expo p '() q) (eval-expo q '() p) (!= p q)
-    (== r [p q]))))
+(deftest test-twines
+  (let [twines (first (first
+            (run 1 [r] (fresh [p q]
+              (eval-expo p '() q)
+              (eval-expo q '() p)
+              (!= p q)
+              (== r [p q])))))
+        [pp qq] twines]
 
-(defn test-thrines-1 []
-  (run 1 [x]
-    (fresh (p q r)
-      (!= p q)
-      (!= q r)
-      (!= r p)
-      (eval-expo p '() q)
-      (eval-expo q '() r)
-      (eval-expo r '() p)
-      (== [p q r] x))))
-)
+    (is (and (= qq (eval pp)) (= pp (eval qq))))))
+
+(deftest test-thrines
+  (let [thrines (first (first
+          (run 1 [x]
+            (fresh (p q r)
+              (!= p q)
+              (!= q r)
+              (!= r p)
+              (eval-expo p '() q)
+              (eval-expo q '() r)
+              (eval-expo r '() p)
+              (== [p q r] x)))))
+        [pp qq rr] thrines]
+
+    (is (and (= qq (eval pp)) (= rr (eval qq)) (= pp (eval rr))))))
