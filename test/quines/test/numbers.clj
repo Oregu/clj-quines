@@ -40,6 +40,41 @@
   (is (first (run 1 [q]
     (<o (build-num 2) (build-num 9))))))
 
+(deftest test-divideo
+  (let [[q r] (first (run 1 [q r]
+                (divideo (build-num 7) (build-num 3) q r)))]
+    (is (and (= q (build-num 2)) (= r (build-num 1)))))
+
+  (let [[q r] (first (run 1 [q r]
+                (divideo (build-num 18) (build-num 3) q r)))]
+    (is (and (= q (build-num 6)) (= r '()))))
+
+  (let [[q r] (first (run 1 [q r]
+                (divideo (build-num 3) (build-num 7) q r)))]
+    (is (and (= q '()) (= r (build-num 3))))))
+
+(deftest test-logo
+  (let [[q r] (first (run 1 [q r]
+                (logo (build-num 16) (build-num 2) q r)))]
+    (is (and (= q '(0 0 1)) (= r '()))))
+
+  (let [[q r] (first (run 1 [q r]
+                (logo (build-num 1000) (build-num 10) q r)))]
+    (is (and (= q (build-num 3)) (= r '()))))
+
+  (is (= '(1 1) (first (run 1 [q]
+                (logo (build-num 9) q (build-num 2) '()))))))
+
+(deftest test-expo
+  (is (= (build-num 8) (first (run 1 [q]
+                (expo (build-num 2) (build-num 3) q)))))
+
+  (is (= (build-num 11) (first (run 1 [q]
+                (expo q (build-num 2) (build-num 121))))))
+
+  (is (= (build-num 10) (first (run 1 [q]
+                (expo (build-num 2) q (build-num 1024)))))))
+
 (comment
 
 (test-check "sums"

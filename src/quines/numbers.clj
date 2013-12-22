@@ -142,142 +142,141 @@
     [(== n m)]
     [(<o n m)]))
 
-(comment
+(defn- splito [n r l h]
+  (conde
+    [(== '() n) (== '() h) (== '() l)]
+    [(fresh [b n-hat t1]
+      (conso b n-hat t1)
+      (conso 0 t1 n)
+      (== '() r)
+      (conso b n-hat h)
+      (== '() l))]
+    [(fresh [n-hat]
+      (conso 1 n-hat n)
+      (== '() r)
+      (== n-hat h)
+      (== '(1) l))]
+    [(fresh [b n-hat a r-hat t1 t2]
+      (conso b n-hat t1)
+      (conso 0 t1 n)
+      (conso a r-hat r)
+      (== '() l)
+      (conso b n-hat t2)
+      (splito t2 r-hat '() h))]
+    [(fresh [n-hat a r-hat]
+      (conso 1 n-hat n)
+      (conso a r-hat r)
+      (== '(1) l)
+      (splito n-hat r-hat '() h))]
+    [(fresh [b n-hat a r-hat l-hat]
+      (conso b n-hat n)
+      (conso a r-hat r)
+      (conso b l-hat l)
+      (poso l-hat)
+      (splito n-hat r-hat l-hat h))]))
 
-(define divideo
-  (lambda (n m q r)
-    (conde
-      ((== r n) (== '() q) (<o n m))
-      ((== '(1) q) (=lo n m) (pluso r m n)
-       (<o r m))
-      ((<lo m n)
-       (<o r m)
-       (poso q)
-       (fresh (nh nl qh ql qlm qlmr rr rh)
-         (splito n r nl nh)
-         (splito q r ql qh)
-         (conde
-           ((== '() nh)
-            (== '() qh)
-            (minuso nl r qlm)
-            (*o ql m qlm))
-           ((poso nh)
-            (*o ql m qlm)
-            (pluso qlm r qlmr)
-            (minuso qlmr nl rr)
-            (splito rr r '() rh)
-            (divideo nh m qh rh))))))))
+(defn divideo [n m q r]
+  (conde
+    [(== r n) (== '() q) (<o n m)]
+    [(== '(1) q) (=lo n m) (pluso r m n)
+      (<o r m)]
+    [(<lo m n)
+     (<o r m)
+     (poso q)
+     (fresh [nh nl qh ql qlm qlmr rr rh]
+       (splito n r nl nh)
+       (splito q r ql qh)
+       (conde
+         [(== '() nh)
+          (== '() qh)
+          (minuso nl r qlm)
+          (*o ql m qlm)]
+         [(poso nh)
+          (*o ql m qlm)
+          (pluso qlm r qlmr)
+          (minuso qlmr nl rr)
+          (splito rr r '() rh)
+          (divideo nh m qh rh)]))]))
 
-(define splito
-  (lambda (n r l h)
-    (conde
-      ((== '() n) (== '() h) (== '() l))
-      ((fresh (b n-hat)
-         (== `(0 ,b . ,n-hat) n)
-         (== '() r)
-         (== `(,b . ,n-hat) h)
-         (== '() l)))
-      ((fresh (n-hat)
-         (==  `(1 . ,n-hat) n)
-         (== '() r)
-         (== n-hat h)
-         (== '(1) l)))
-      ((fresh (b n-hat a r-hat)
-         (== `(0 ,b . ,n-hat) n)
-         (== `(,a . ,r-hat) r)
-         (== '() l)
-         (splito `(,b . ,n-hat) r-hat '() h)))
-      ((fresh (n-hat a r-hat)
-         (== `(1 . ,n-hat) n)
-         (== `(,a . ,r-hat) r)
-         (== '(1) l)
-         (splito n-hat r-hat '() h)))
-      ((fresh (b n-hat a r-hat l-hat)
-         (== `(,b . ,n-hat) n)
-         (== `(,a . ,r-hat) r)
-         (== `(,b . ,l-hat) l)
-         (poso l-hat)
-         (splito n-hat r-hat l-hat h))))))
+(defn- repeated-mul [n q nq]
+  (conde
+    [(poso n) (== '() q) (== '(1) nq)]
+    [(== '(1) q) (== n nq)]
+    [(>1o q)
+     (fresh [q1 nq1]
+       (pluso q1 '(1) q)
+       (repeated-mul n q1 nq1)
+       (*o nq1 n nq))]))
 
-(define logo
-  (lambda (n b q r)
-    (conde
-      ((== '(1) n) (poso b) (== '() q) (== '() r))
-      ((== '() q) (<o n b) (pluso r '(1) n))
-      ((== '(1) q) (>1o b) (=lo n b) (pluso r b n))
-      ((== '(1) b) (poso q) (pluso r '(1) n))
-      ((== '() b) (poso q) (== r n))
-      ((== '(0 1) b)
-       (fresh (a ad dd)
-         (poso dd)
-         (== `(,a ,ad . ,dd) n)
-         (exp2 n '() q)
-         (fresh (s)
-           (splito n dd r s))))
-      ((fresh (a ad add ddd)
-         (conde
-           ((== '(1 1) b))
-           ((== `(,a ,ad ,add . ,ddd) b))))
-       (<lo b n)
-       (fresh (bw1 bw nw nw1 ql1 ql s)
-         (exp2 b '() bw1)
-         (pluso bw1 '(1) bw)
-         (<lo q n)
-         (fresh (q1 bwq1)
-           (pluso q '(1) q1)
-           (*o bw q1 bwq1)
-           (<o nw1 bwq1))
-         (exp2 n '() nw1)
-         (pluso nw1 '(1) nw)
-         (divideo nw bw ql1 s)
-         (pluso ql '(1) ql1)
-         (<=lo ql q)
-         (fresh (bql qh s qdh qd)
-           (repeated-mul b ql bql)
-           (divideo nw bw1 qh s)
-           (pluso ql qdh qh)
-           (pluso ql qd q)
-           (<=o qd qdh)
-           (fresh (bqd bq1 bq)
-             (repeated-mul b qd bqd)
-             (*o bql bqd bq)
-             (*o b bq bq1)
-             (pluso bq r n)
-             (<o n bq1))))))))
+(defn exp2 [n b q]
+  (conde
+    [(== '(1) n) (== '() q)]
+    [(>1o n) (== '(1) q)
+     (fresh [s]
+       (splito n b s '(1)))]
+    [(fresh [q1 b2 t1]
+      (conso 0 q1 q)
+      (poso q1)
+      (<lo b n)
+      (conso 1 b t1)
+      (appendo b t1 b2)
+      (exp2 n b2 q1))]
+    [(fresh [q1 nh b2 s t1]
+      (conso 1 q1 q)
+      (poso q1)
+      (poso nh)
+      (splito n b s nh)
+      (conso 1 b t1)
+      (appendo b t1 b2)
+      (exp2 nh b2 q1))]))
 
-(define exp2
-   (lambda (n b q)
-     (conde
-       ((== '(1) n) (== '() q))
-       ((>1o n) (== '(1) q)
-        (fresh (s)
-          (splito n b s '(1))))
-       ((fresh (q1 b2)
-          (== `(0 . ,q1) q)
-          (poso q1)
-          (<lo b n)
-          (appendo b `(1 . ,b) b2)
-          (exp2 n b2 q1)))
-       ((fresh (q1 nh b2 s)
-          (== `(1 . ,q1) q)
-          (poso q1)
-          (poso nh)
-          (splito n b s nh)
-          (appendo b `(1 . ,b) b2)
-          (exp2 nh b2 q1))))))
-
-(define repeated-mul
-  (lambda (n q nq)
-    (conde
-      ((poso n) (== '() q) (== '(1) nq))
-      ((== '(1) q) (== n nq))
-      ((>1o q)
-       (fresh (q1 nq1)
-         (pluso q1 '(1) q)
-         (repeated-mul n q1 nq1)
-         (*o nq1 n nq))))))
+(defn logo [n b q r]
+  (conde
+    [(== '(1) n) (poso b) (== '() q) (== '() r)]
+    [(== '() q) (<o n b) (pluso r '(1) n)]
+    [(== '(1) q) (>1o b) (=lo n b) (pluso r b n)]
+    [(== '(1) b) (poso q) (pluso r '(1) n)]
+    [(== '() b) (poso q) (== r n)]
+    [(== '(0 1) b)
+     (fresh [a ad dd t1]
+       (poso dd)
+       (conso ad dd t1)
+       (conso a t1 n)
+       (exp2 n '() q)
+       (fresh [s]
+         (splito n dd r s)))]
+    [(fresh [a ad add ddd t1 t2]
+       (conde
+         [(== '(1 1) b)]
+         [(conso add ddd t1)
+          (conso ad t1 t2)
+          (conso a t2 b)]))
+     (<lo b n)
+     (fresh [bw1 bw nw nw1 ql1 ql s]
+       (exp2 b '() bw1)
+       (pluso bw1 '(1) bw)
+       (<lo q n)
+       (fresh [q1 bwq1]
+         (pluso q '(1) q1)
+         (*o bw q1 bwq1)
+         (<o nw1 bwq1))
+       (exp2 n '() nw1)
+       (pluso nw1 '(1) nw)
+       (divideo nw bw ql1 s)
+       (pluso ql '(1) ql1)
+       (<=lo ql q)
+       (fresh [bql qh s qdh qd]
+         (repeated-mul b ql bql)
+         (divideo nw bw1 qh s)
+         (pluso ql qdh qh)
+         (pluso ql qd q)
+         (<=o qd qdh)
+         (fresh [bqd bq1 bq]
+           (repeated-mul b qd bqd)
+           (*o bql bqd bq)
+           (*o b bq bq1)
+           (pluso bq r n)
+           (<o n bq1))))]))
 
 (defn expo [b q n]
   (logo n b q '()))
-
-)
