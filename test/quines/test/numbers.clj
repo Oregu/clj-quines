@@ -75,30 +75,17 @@
   (is (= (build-num 10) (first (run 1 [q]
                 (expo (build-num 2) q (build-num 1024)))))))
 
-(comment
+(deftest test-factors
+  (let [factors (run* (q) (fresh (x y)
+                  (*o x y (build-num 24))
+                  (== [x y] q)))]
 
-(test-check "sums"
-  (run 5 (q)
-    (fresh (x y z)
-      (pluso x y z)
-      (== `(,x ,y ,z) q)))
-  '((_.0 () _.0)
-    (() (_.0 . _.1) (_.0 . _.1))
-    ((1) (1) (0 1))
-    ((1) (0 _.0 . _.1) (1 _.0 . _.1))
-    ((1) (1 1) (0 0 1))))
-
-(test-check "factors"
-  (run* (q)
-    (fresh (x y)
-      (*o x y (build-num 24))
-      (== `(,x ,y ,(build-num 24)) q)))
-  '(((1) (0 0 0 1 1) (0 0 0 1 1))
-    ((0 0 0 1 1) (1) (0 0 0 1 1))
-    ((0 1) (0 0 1 1) (0 0 0 1 1))
-    ((0 0 1) (0 1 1) (0 0 0 1 1))
-    ((0 0 0 1) (1 1) (0 0 0 1 1))
-    ((1 1) (0 0 0 1) (0 0 0 1 1))
-    ((0 1 1) (0 0 1) (0 0 0 1 1))
-    ((0 0 1 1) (0 1) (0 0 0 1 1))))
-)
+    (is (= 8 (count factors)))
+    (is (some #{['(1) '(0 0 0 1 1)]} factors))
+    (is (some #{['(0 0 0 1 1) '(1)]} factors))
+    (is (some #{['(0 1) '(0 0 1 1)]} factors))
+    (is (some #{['(0 0 1) '(0 1 1)]} factors))
+    (is (some #{['(0 0 0 1) '(1 1)]} factors))
+    (is (some #{['(1 1) '(0 0 0 1)]} factors))
+    (is (some #{['(0 1 1) '(0 0 1)]} factors))
+    (is (some #{['(0 0 1 1) '(0 1)]} factors))))
