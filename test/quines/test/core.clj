@@ -43,11 +43,9 @@
       (first (run 1 [q]
         (eval-expo q '() quine)))))))
 
-; TODO test several quines
-
 (deftest test-quine-gen
   (let [quine-gen (first (first (run 1 [q] ; second first is to get func itself, others are constraints
-                    (eval-expo q '() q))))]
+                                     (eval-expo q '() q))))]
 
     (is (= quine-gen (first (run 1 [q] (eval-expo quine-gen '() q)))))))
 

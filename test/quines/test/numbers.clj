@@ -81,11 +81,11 @@
                   (== [x y] q)))]
 
     (is (= 8 (count factors)))
-    (is (some #{['(1) '(0 0 0 1 1)]} factors))
-    (is (some #{['(0 0 0 1 1) '(1)]} factors))
-    (is (some #{['(0 1) '(0 0 1 1)]} factors))
-    (is (some #{['(0 0 1) '(0 1 1)]} factors))
-    (is (some #{['(0 0 0 1) '(1 1)]} factors))
-    (is (some #{['(1 1) '(0 0 0 1)]} factors))
-    (is (some #{['(0 1 1) '(0 0 1)]} factors))
-    (is (some #{['(0 0 1 1) '(0 1)]} factors))))
+    (is (some #{['(1) '(0 0 0 1 1)]} factors))   ;; 1, 24
+    (is (some #{['(0 0 0 1 1) '(1)]} factors))   ;; 24, 1
+    (is (some #{['(0 1) '(0 0 1 1)]} factors))   ;; 2, 12
+    (is (some #{['(0 0 1) '(0 1 1)]} factors))   ;; 4, 6
+    (is (some #{['(0 0 0 1) '(1 1)]} factors))   ;; 8, 3
+    (is (some #{['(1 1) '(0 0 0 1)]} factors))   ;; 3, 8
+    (is (some #{['(0 1 1) '(0 0 1)]} factors))   ;; 6, 4
+    (is (some #{['(0 0 1 1) '(0 1)]} factors)))) ;; 12, 2
