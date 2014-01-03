@@ -18,7 +18,7 @@
       :source-paths ["src/cljs/"]
       :compiler {
         :output-to "res/public/js/hello.js"
-        :optimizations :whitespace
+        :optimizations :whitespace ; :whitespace, :simple, :advanced
         :pretty-print true}}]}
 
   :ring {:handler quines.http.server/handler})
