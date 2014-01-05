@@ -1,4 +1,5 @@
 (ns hello
   (:require [goog.dom :as dom]))
 
-(set! (.-innerHTML (dom/getElement "msg")) "Hello, ClojureScript!")
+(defn ^:export do-hello []
+  (set! (.-innerHTML (dom/getElement "msg")) "Hello, ClojureScript!"))

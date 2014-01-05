@@ -17,6 +17,7 @@
     :builds [{
       :source-paths ["src/cljs/"]
       :compiler {
+        :output-dir "target/cljs"
         :output-to "res/public/js/hello.js"
         :optimizations :whitespace ; :whitespace, :simple, :advanced
         :pretty-print true}}]}

@@ -1,0 +1,12 @@
+pom.xml
+*jar
+/lib/
+/classes/
+/targets/
+.lein-deps-sum
+.*
+/target/
+*.sublime-*
+twitter.creds
+repl
+res/public/js/hello.js

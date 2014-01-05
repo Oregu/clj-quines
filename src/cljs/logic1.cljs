@@ -4,7 +4,8 @@
   (:use [cljs.core.logic :only [membero]]))
 
 (def members
-(m/run* [q]
-  (membero q '(:cat :dog :bird :bat :debra))))
+  (m/run* [q]
+    (membero q '(:cat :dog :bird :bat :debra))))
 
-(set! (.-innerHTML (dom/getElement "logic-msg")) members)
+(defn ^:export do-logic []
+  (set! (.-innerHTML (dom/getElement "logic-msg")) members))
