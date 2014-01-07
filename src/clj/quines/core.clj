@@ -24,6 +24,8 @@
     [(symbolo body)
      (!= body vr)
      (== body body-ex)]
+    [(numbero body)
+     (== body body-ex)]
     [(fresh [rator rand rator-ex rand-ex]
       (== `(~rator ~rand) body)
       (substo rator vr vl rator-ex) ;; TODO: if rator is fn then apply it
@@ -31,18 +33,15 @@
       (== body-ex `(~rator-ex ~rand-ex)))]
     [(fresh [x body2 body2-ex]
       (== `(~'fn [~x] ~body2) body)
-      (substo body2 vr vl body2-ex)
+      (substo body2 vr vl body2-ex) ;; TODO do not substitute bound variables
       (== body-ex `(~'fn [~x] ~body2-ex)))]))
 
 (defn reduceo [body env body-ex] ;; TODO trim environment
   (conde
-    [(trace-lvars "emptyo1" [body env])
-     (emptyo env)
-     (trace-lvars "emptyo2" [body env])
+    [(emptyo env)
      (== body body-ex)]
     [(fresh [vr vl env-t body2]
       (conso `(~vr ~vl) env-t env)
-      (trace-lvars "env" [body vr vl env-t])
       (substo body vr vl body2)
       (reduceo body2 env-t body-ex))]))
 
