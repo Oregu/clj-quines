@@ -16,6 +16,36 @@
       [(== y x) (== v t)]
       [(!= y x) (lookupo x rest t)])))
 
+(defn substo [body vr vl body-ex]
+  (conde
+    [(symbolo body)
+     (== body vr)
+     (== body-ex vl)]
+    [(symbolo body)
+     (!= body vr)
+     (== body body-ex)]
+    [(fresh [rator rand rator-ex rand-ex]
+      (== `(~rator ~rand) body)
+      (substo rator vr vl rator-ex) ;; TODO: if rator is fn then apply it
+      (substo rand vr vl rand-ex)
+      (== body-ex `(~rator-ex ~rand-ex)))]
+    [(fresh [x body2 body2-ex]
+      (== `(~'fn [~x] ~body2) body)
+      (substo body2 vr vl body2-ex)
+      (== body-ex `(~'fn [~x] ~body2-ex)))]))
+
+(defn reduceo [body env body-ex] ;; TODO trim environment
+  (conde
+    [(trace-lvars "emptyo1" [body env])
+     (emptyo env)
+     (trace-lvars "emptyo2" [body env])
+     (== body body-ex)]
+    [(fresh [vr vl env-t body2]
+      (conso `(~vr ~vl) env-t env)
+      (trace-lvars "env" [body vr vl env-t])
+      (substo body vr vl body2)
+      (reduceo body2 env-t body-ex))]))
+
 (defn eval-expo [exp env val]
   (conde
     [(fresh [v]
@@ -29,18 +59,23 @@
       (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
+      (trace-lvars "symbolo" [exp val])
       (lookupo exp env val)]
     [(fresh [rator rand x body env- a env2]
       (== `(~rator ~rand) exp)
+      (trace-lvars "app" [rator rand env])
       (eval-expo rator env `(~'closure ~x ~body ~env-))
       (eval-expo rand env a)
       (conso `(~x ~a) env- env2)
+      (trace-lvars "app-eval" [body env2 val])
       (eval-expo body env2 val))]
-    [(fresh [x body]
+    [(fresh [x body body-ex env2]
       (== `(~'fn [~x] ~body) exp)
+      (trace-lvars "func" [x body env])
       (symbolo x)
       (not-in-envo 'fn env)
-      (== `(~'closure ~x ~body ~env) val))]))
+      (reduceo body env body-ex)
+      (== `(~'closure ~x ~body-ex ~env) val))]))
 
 (defn not-in-envo [x env]
   (conde
