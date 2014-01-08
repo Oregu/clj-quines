@@ -4,6 +4,7 @@
 
 (defn noo [tag u] (predc u (fn [x] (clojure.core/not= (if (seq? x) (first x) x) tag))))
 (defn symbolo [x] (predc x symbol?))
+(defn not-symbolo [x] (predc x #(not (symbol? %))))
 (defn numbero [x] (predc x number?))
 
 (declare not-in-envo)
@@ -15,6 +16,8 @@
     (conde
       [(== y x) (== v t)]
       [(!= y x) (lookupo x rest t)])))
+
+(declare eval-expo)
 
 (defn substo [body vr vl body-ex]
   (conde
@@ -28,11 +31,12 @@
      (== body body-ex)]
     [(fresh [rator rand rator-ex rand-ex]
       (== `(~rator ~rand) body)
-      (substo rator vr vl rator-ex) ;; TODO: if rator is fn then apply it
+      (substo rator vr vl rator-ex)
       (substo rand vr vl rand-ex)
-      (== body-ex `(~rator-ex ~rand-ex)))]
+      (eval-expo `(~rator-ex ~rand-ex) '() body-ex))]
     [(fresh [x body2 body2-ex]
       (== `(~'fn [~x] ~body2) body)
+      (!= x vr)
       (substo body2 vr vl body2-ex) ;; TODO do not substitute bound variables
       (== body-ex `(~'fn [~x] ~body2-ex)))]))
 
@@ -58,23 +62,36 @@
       (noo 'closure a*)
       (proper-listo a* env val))]
     [(symbolo exp)
-      (trace-lvars "symbolo" [exp val])
       (lookupo exp env val)]
+    [(symbolo exp)
+      (lookupo exp `((~exp ~exp)) val)]
     [(fresh [rator rand x body env- a env2]
       (== `(~rator ~rand) exp)
-      (trace-lvars "app" [rator rand env])
+      (not-symbolo rator)
       (eval-expo rator env `(~'closure ~x ~body ~env-))
       (eval-expo rand env a)
       (conso `(~x ~a) env- env2)
-      (trace-lvars "app-eval" [body env2 val])
       (eval-expo body env2 val))]
+    [(fresh [rator rand x v2]
+      (== `(~rator ~rand) exp)
+      (not-symbolo rator)
+      (eval-expo rator env v2)
+      (noo 'closure v2)
+      (reduceo exp env val))]
     [(fresh [x body body-ex env2]
       (== `(~'fn [~x] ~body) exp)
-      (trace-lvars "func" [x body env])
       (symbolo x)
       (not-in-envo 'fn env)
       (reduceo body env body-ex)
-      (== `(~'closure ~x ~body-ex ~env) val))]))
+      (== `(~'closure ~x ~body-ex ~env) val))]
+    [(fresh [rator rand]
+      (== `(~rator ~rand) exp)
+      (symbolo rator)
+      (reduceo exp env val))]
+    [(fresh [x body env2]
+      (== `(~'closure ~x ~body ~env2) exp)
+      (symbolo x)
+      (== exp val))]))
 
 (defn not-in-envo [x env]
   (conde
