@@ -3,6 +3,4 @@
   :url "http://github.com/Oregu/clj-quines"
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.logic "0.8.7"]]
-
-  :plugins [[lein-ancient "0.5.5-SNAPSHOT"]])
+                 [org.clojure/core.logic "0.8.7"]])
