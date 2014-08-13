@@ -1,8 +1,8 @@
 (ns quines.test.numbers
   (:refer-clojure :exclude [==])
-  (:use quines.numbers
+  (:use [quines.numbers]
         [clojure.core.logic :exclude [is] :as l]
-        clojure.test))
+        [clojure.test]))
 
 (deftest test-poso
   (is (not (first (run 1 [q] (poso zeroo)))))

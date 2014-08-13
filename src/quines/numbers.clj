@@ -16,12 +16,13 @@
     (zero? n) '()))
 
 (defn poso [n]
-  (matche [n]
-    ([[_ . _]] succeed)))
+  (fresh [a d] (conso a d n)))
 
 (defn >1o [n]
-  (matche [n]
-    ([[_ _ . _]] succeed)))
+  "Bigger that one."
+  (fresh [a t ad dd]
+   (conso ad t dd)
+   (conso a dd n)))
 
 (defn- full-addero [b x y r c]
   (conde
@@ -53,17 +54,21 @@
 
 (defn- gen-addero [d n m r]
   (fresh [a b c e x y z]
-    (matche [n] ([[a . x]] succeed))
-    (matche [m] ([[b . y]] succeed)) (poso y)
-    (matche [r] ([[c . z]] succeed)) (poso z)
-    (full-addero d a b c e)
-    (addero e x y z)))
+   (conso a x n)
+   (conso b y m) (poso y)
+   (conso c z r) (poso z)
+   (full-addero d a b c e)
+   (addero e x y z)))
 
 (defn pluso [n m k]
   (addero 0 n m k))
 
+(def +o pluso)
+
 (defn minuso [n m k]
   (pluso m k n))
+
+(def -o minuso)
 
 (declare odd-*o)
 
